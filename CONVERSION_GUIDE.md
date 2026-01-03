@@ -1,117 +1,122 @@
-# Discord Components v1 zu v2 Konvertierungs-Guide
 
-## Schnellstart
+# Discord Components v1 to v2 Conversion Guide
 
-### PowerShell-Skript ausführen:
+## Quick Start
+
+### Run the PowerShell script:
 ```powershell
-cd C:\Pfad\zu\deinem\Projekt
+cd C:\Path\to\your\Project
 .\convert_components_v2.ps1
-```
 
-## Was das Skript automatisch macht:
+## What the script does automatically:
 
-✅ Installiert/Aktualisiert py-cord auf Version 2.7.0
-✅ Konvertiert `DesignerView` zu `discord.ui.View`
-✅ Entfernt veraltete Imports (Container, TextDisplay, ActionRow)
-✅ Korrigiert ButtonStyle-Verwendung
-✅ Erstellt automatisch Backups (.backup Dateien)
+✅ Installs/updates py-cord to version 2.7.0
+✅ Converts `DesignerView` to `discord.ui.View`
+✅ Removes deprecated imports (`Container`, `TextDisplay`, `ActionRow`)
+✅ Fixes `ButtonStyle` usage
+✅ Automatically creates backups (`.backup` files)
 
-## Was manuell gemacht werden muss:
+## What must be done manually:
 
-### 1. Container + TextDisplay zu Embed konvertieren
+### 1. Convert Container + TextDisplay to Embed
 
-#### ALT (v1):
+#### OLD (v1):
+
 ```python
 class MyView(DesignerView):
     def __init__(self):
         super().__init__()
         container = Container(
-            TextDisplay("## Titel"),
-            TextDisplay("Hier ist eine Beschreibung mit wichtigen Informationen.")
+            TextDisplay("## Title"),
+            TextDisplay("Here is a description with important information.")
         )
         self.add_item(container)
 ```
 
-#### NEU (v2):
+#### NEW (v2):
+
 ```python
 class MyView(discord.ui.View):
     def __init__(self):
         super().__init__()
-        
-# Erstelle stattdessen ein Embed und sende es direkt:
+
+# Instead, create an embed and send it directly:
 embed = discord.Embed(
-    title="Titel",
-    description="Hier ist eine Beschreibung mit wichtigen Informationen.",
+    title="Title",
+    description="Here is a description with important information.",
     color=discord.Color.blue()
 )
 
 embed.add_field(
-    name="📌 Kategorie 1",
-    value="Inhalt für Kategorie 1",
+    name="📌 Category 1",
+    value="Content for category 1",
     inline=False
 )
 
 embed.add_field(
-    name="🔧 Kategorie 2",
-    value="Inhalt für Kategorie 2",
+    name="🔧 Category 2",
+    value="Content for category 2",
     inline=False
 )
 
 await interaction.response.send_message(embed=embed, ephemeral=True)
 ```
 
-### 2. Buttons direkt zur View hinzufügen
+### 2. Add buttons directly to the View
 
-#### ALT (v1):
+#### OLD (v1):
+
 ```python
 container.add_item(ActionRow(button))
 ```
 
-#### NEU (v2):
-```python
-# Methode 1: Buttons als Decorator in der View-Klasse:
-class MyView(discord.ui.View):
-    @discord.ui.button(label="Klick mich", style=discord.ButtonStyle.primary)
-    async def button_callback(self, button, interaction):
-        await interaction.response.send_message("Button wurde geklickt!", ephemeral=True)
+#### NEW (v2):
 
-# Methode 2: Button manuell hinzufügen:
+```python
+# Method 1: Buttons as decorators inside the View class:
+class MyView(discord.ui.View):
+    @discord.ui.button(label="Click me", style=discord.ButtonStyle.primary)
+    async def button_callback(self, button, interaction):
+        await interaction.response.send_message("Button was clicked!", ephemeral=True)
+
+# Method 2: Add button manually:
 class MyView(discord.ui.View):
     def __init__(self):
         super().__init__()
         
-        button = discord.ui.Button(label="Klick mich", style=discord.ButtonStyle.primary)
+        button = discord.ui.Button(label="Click me", style=discord.ButtonStyle.primary)
         button.callback = self.my_callback
         self.add_item(button)
     
     async def my_callback(self, interaction):
-        await interaction.response.send_message("Button wurde geklickt!", ephemeral=True)
+        await interaction.response.send_message("Button was clicked!", ephemeral=True)
 ```
 
-## Wichtige Änderungen in py-cord 2.7.0:
+## Important changes in py-cord 2.7.0:
 
-1. **DesignerView wurde entfernt** - Nutze `discord.ui.View`
-2. **Container/TextDisplay wurden entfernt** - Nutze `discord.Embed`
-3. **ActionRow ist nicht mehr nötig** - Discord handhabt das automatisch
-4. **ButtonStyle.gray** → **ButtonStyle.grey** (britisches Englisch)
+1. **DesignerView was removed** – use `discord.ui.View`
+2. **Container/TextDisplay were removed** – use `discord.Embed`
+3. **ActionRow is no longer required** – Discord handles layout automatically
+4. **ButtonStyle.gray** → **ButtonStyle.grey** (British spelling)
 
-## Backup wiederherstellen:
+## Restore backups:
 
-Falls etwas schief geht:
+If something goes wrong:
 
 ```powershell
-# Einzelne Datei:
-Move-Item "meine_datei.py.backup" "meine_datei.py" -Force
+# Single file:
+Move-Item "my_file.py.backup" "my_file.py" -Force
 
-# Alle Backups wiederherstellen:
+# Restore all backups:
 Get-ChildItem -Filter "*.backup" -Recurse | ForEach-Object { 
     Move-Item $_.FullName ($_.FullName -replace '\.backup$','') -Force 
 }
 ```
 
-## Beispiel: Vollständige View-Konvertierung
+## Example: Full View Conversion
 
-### Vorher (v1):
+### Before (v1):
+
 ```python
 from discord.ui import DesignerView, Container, TextDisplay, ActionRow
 
@@ -119,31 +124,32 @@ class ServerInfoView(DesignerView):
     def __init__(self):
         super().__init__()
         container = Container(
-            TextDisplay("## 🎮 Server Informationen"),
+            TextDisplay("## 🎮 Server Information"),
             TextDisplay(
-                "**Willkommen auf unserem Server!**\n\n"
-                "Hier findest du alle wichtigen Informationen."
+                "**Welcome to our server!**\n\n"
+                "Here you can find all important information."
             ),
             TextDisplay(
-                "📋 **Befehle:**\n"
-                "- /help - Zeigt diese Hilfe\n"
-                "- /info - Server-Informationen\n"
-                "- /rules - Serverregeln"
+                "📋 **Commands:**\n"
+                "- /help - Shows this help\n"
+                "- /info - Server information\n"
+                "- /rules - Server rules"
             )
         )
         
-        # Button hinzufügen
-        button = discord.ui.Button(label="Mehr erfahren", style=discord.ButtonStyle.primary)
+        # Add button
+        button = discord.ui.Button(label="Learn more", style=discord.ButtonStyle.primary)
         button.callback = self.button_clicked
         container.add_item(ActionRow(button))
         
         self.add_item(container)
     
     async def button_clicked(self, interaction):
-        await interaction.response.send_message("Weitere Informationen...", ephemeral=True)
+        await interaction.response.send_message("More information...", ephemeral=True)
 ```
 
-### Nachher (v2):
+### After (v2):
+
 ```python
 import discord
 
@@ -151,23 +157,23 @@ class ServerInfoView(discord.ui.View):
     def __init__(self):
         super().__init__()
     
-    @discord.ui.button(label="Mehr erfahren", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="Learn more", style=discord.ButtonStyle.primary)
     async def button_clicked(self, button, interaction):
-        await interaction.response.send_message("Weitere Informationen...", ephemeral=True)
+        await interaction.response.send_message("More information...", ephemeral=True)
 
-# Embed separat erstellen und mit View senden:
+# Create the embed separately and send it with the View:
 embed = discord.Embed(
-    title="🎮 Server Informationen",
-    description="**Willkommen auf unserem Server!**\n\nHier findest du alle wichtigen Informationen.",
+    title="🎮 Server Information",
+    description="**Welcome to our server!**\n\nHere you can find all important information.",
     color=discord.Color.blue()
 )
 
 embed.add_field(
-    name="📋 Befehle",
+    name="📋 Commands",
     value=(
-        "`/help` - Zeigt diese Hilfe\n"
-        "`/info` - Server-Informationen\n"
-        "`/rules` - Serverregeln"
+        "`/help` - Shows this help\n"
+        "`/info` - Server information\n"
+        "`/rules` - Server rules"
     ),
     inline=False
 )
@@ -179,20 +185,26 @@ await ctx.send(embed=embed, view=view)
 ## Troubleshooting:
 
 ### "Components displayable text size exceeds maximum size of 4000"
-➡️ Dein Text ist zu lang! Nutze Embeds mit mehreren Fields statt Container, oder teile die Informationen auf mehrere Nachrichten auf.
+
+➡️ Your text is too long! Use embeds with multiple fields instead of containers, or split the information across multiple messages.
 
 ### "ButtonStyle type error"
-➡️ Nutze `discord.ButtonStyle.grey` statt `discord.ButtonStyle.gray`
+
+➡️ Use `discord.ButtonStyle.grey` instead of `discord.ButtonStyle.gray`
 
 ### "DesignerView not found"
-➡️ DesignerView existiert nicht mehr in v2. Nutze `discord.ui.View`
+
+➡️ `DesignerView` no longer exists in v2. Use `discord.ui.View`
 
 ### "Container/TextDisplay not found"
-➡️ Diese Komponenten existieren nicht mehr. Nutze `discord.Embed` für formatierte Texte.
 
-## Weitere Hilfe:
+➡️ These components no longer exist. Use `discord.Embed` for formatted text.
 
-- [py-cord Documentation](https://docs.pycord.dev/)
-- [Discord UI Kit Guide](https://docs.pycord.dev/en/stable/api/ui_kit.html)
-- [Discord Embed Guide](https://docs.pycord.dev/en/stable/api/models.html#discord.Embed)
+## Further help:
 
+* [py-cord Documentation](https://docs.pycord.dev/)
+* [Discord UI Kit Guide](https://docs.pycord.dev/en/stable/api/ui_kit.html)
+* [Discord Embed Guide](https://docs.pycord.dev/en/stable/api/models.html#discord.Embed)
+
+```
+```
