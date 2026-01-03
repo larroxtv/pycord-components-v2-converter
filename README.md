@@ -152,9 +152,6 @@ python -m pip install py-cord==2.7.0
 | `ActionRow(button)` | `self.add_item(button)` |
 | `ButtonStyle.gray` | `ButtonStyle.grey` |
 
-## 📝 Lizenz
-
-Dieses Tool ist Lizensiert unter der [MIT License](https://github.com/larroxtv/pycord-components-v2-converter/blob/main/LICENSE).
 ## 🤝 Support
 
 Bei Fragen oder Problemen:
@@ -162,7 +159,6 @@ Bei Fragen oder Problemen:
 2. Suche in der [py-cord Dokumentation](https://docs.pycord.dev/)
 3. Stelle sicher, dass py-cord 2.7.0 installiert ist
 
----
+## 📝 Lizenz
 
-**Viel Erfolg bei der Migration! 🚀**
-
+Dieses Tool ist Lizensiert unter der [MIT License](https://github.com/larroxtv/pycord-components-v2-converter/blob/main/LICENSE).
