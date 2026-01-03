@@ -154,8 +154,7 @@ python -m pip install py-cord==2.7.0
 
 ## 📝 Lizenz
 
-Dieses Tool ist frei verwendbar für alle Discord-Bot-Projekte.
-
+Dieses Tool ist Lizensiert unter der [MIT License](https://github.com/larroxtv/pycord-components-v2-converter/blob/main/LICENSE).
 ## 🤝 Support
 
 Bei Fragen oder Problemen:
