@@ -1,164 +1,175 @@
 # Py-Cord Components v2 Converter
 
-Ein PowerShell-Tool zur automatischen Konvertierung von Discord.py/py-cord Bot-Code von Components v1 zu v2.
+A PowerShell tool for automatically converting Discord.py / py-cord bot code from Components v1 to v2.
 
-## 🎯 Was macht dieses Tool?
+## 🎯 What does this tool do?
 
-Dieses Tool hilft dir dabei, deinen Discord-Bot von der veralteten DesignerView-API zu den neuen Standard-Discord-Components zu migrieren.
+This tool helps you migrate your Discord bot from the deprecated DesignerView API to the new standard Discord Components.
 
-### ✅ Automatische Konvertierungen:
-- ✅ Installiert/Aktualisiert **py-cord auf Version 2.7.0**
-- ✅ Konvertiert `DesignerView` → `discord.ui.View`
-- ✅ Entfernt veraltete Imports (`Container`, `TextDisplay`, `ActionRow`)
-- ✅ Korrigiert `ButtonStyle.gray` → `ButtonStyle.grey`
-- ✅ Erstellt **automatische Backups** (.backup Dateien)
+### ✅ Automatic conversions:
+- ✅ Installs/updates **py-cord to version 2.7.0**
+- ✅ Converts `DesignerView` → `discord.ui.View`
+- ✅ Removes deprecated imports (`Container`, `TextDisplay`, `ActionRow`)
+- ✅ Fixes `ButtonStyle.gray` → `ButtonStyle.grey`
+- ✅ Creates **automatic backups** (`.backup` files)
 
-### ⚠️ Manuelle Nacharbeit erforderlich:
-- `Container()` und `TextDisplay()` müssen zu `discord.Embed` konvertiert werden
-- Siehe `CONVERSION_GUIDE.md` für detaillierte Beispiele
+### ⚠️ Manual work required:
+- `Container()` and `TextDisplay()` must be converted to `discord.Embed`
+- See `CONVERSION_GUIDE.md` for detailed examples
 
-## 🚀 Schnellstart
+## 🚀 Quick Start
 
-### 1. Skript in dein Projekt kopieren
+### 1. Copy the script into your project
 ```powershell
-# Kopiere convert_components_v2.ps1 und CONVERSION_GUIDE.md in dein Projektverzeichnis
+# Copy convert_components_v2.ps1 and CONVERSION_GUIDE.md into your project directory
+````
+
+### 2. Open PowerShell and navigate to your project
+
+```powershell
+cd C:\Path\to\your\Bot-Project
 ```
 
-### 2. PowerShell öffnen und navigieren
-```powershell
-cd C:\Pfad\zu\deinem\Bot-Projekt
-```
+### 3. Run the script
 
-### 3. Skript ausführen
 ```powershell
 .\convert_components_v2.ps1
 ```
 
-### 4. Option wählen
+### 4. Choose an option
+
 ```
-[1] Alle Python-Dateien im aktuellen Verzeichnis konvertieren
-[2] Eine spezifische Datei konvertieren
-[3] Nur py-cord aktualisieren (keine Konvertierung)
+[1] Convert all Python files in the current directory
+[2] Convert a specific file
+[3] Only update py-cord (no conversion)
 ```
 
-## 📚 Dateien in diesem Package
+## 📚 Files in this package
 
-- **`convert_components_v2.ps1`** - Haupt-Konvertierungsskript
-- **`CONVERSION_GUIDE.md`** - Detaillierte Anleitung mit Code-Beispielen
-- **`README_CONVERTER.md`** - Diese Datei (Übersicht)
+* **`convert_components_v2.ps1`** – Main conversion script
+* **`CONVERSION_GUIDE.md`** – Detailed guide with code examples
+* **`README_CONVERTER.md`** – This file (overview)
 
-## 💡 Beispiel-Workflow
+## 💡 Example Workflow
 
 ```powershell
-# 1. Navigiere zu deinem Bot-Projekt
-cd C:\MeinBot
+# 1. Navigate to your bot project
+cd C:\MyBot
 
-# 2. Führe das Skript aus
+# 2. Run the script
 .\convert_components_v2.ps1
 
-# 3. Wähle Option 1 für alle Dateien
-Ihre Wahl (1/2/3): 1
+# 3. Choose option 1 to convert all files
+Your choice (1/2/3): 1
 
-# 4. Überprüfe die Logs und konvertiere Container manuell
-# 5. Teste deinen Bot
+# 4. Review the logs and convert Containers manually
+# 5. Test your bot
 python main.py
 
-# 6. Lösche Backups wenn alles funktioniert
+# 6. Delete backups if everything works
 Remove-Item *.backup -Recurse
 ```
 
-## 🔄 Backup wiederherstellen
+## 🔄 Restore Backups
 
-Falls etwas schief geht:
+If something goes wrong:
 
 ```powershell
-# Einzelne Datei wiederherstellen:
-Move-Item "meine_datei.py.backup" "meine_datei.py" -Force
+# Restore a single file:
+Move-Item "my_file.py.backup" "my_file.py" -Force
 
-# ALLE Backups wiederherstellen:
+# Restore ALL backups:
 Get-ChildItem -Filter "*.backup" -Recurse | ForEach-Object { 
     Move-Item $_.FullName ($_.FullName -replace '\.backup$','') -Force 
 }
 ```
 
-## 📖 Wichtige Code-Änderungen
+## 📖 Important Code Changes
 
 ### DesignerView → discord.ui.View
+
 ```python
-# ALT:
+# OLD:
 class MyView(DesignerView):
     pass
 
-# NEU:
+# NEW:
 class MyView(discord.ui.View):
     pass
 ```
 
 ### Container/TextDisplay → Embed
+
 ```python
-# ALT:
+# OLD:
 container = Container(
-    TextDisplay("Titel"),
-    TextDisplay("Beschreibung")
+    TextDisplay("Title"),
+    TextDisplay("Description")
 )
 
-# NEU:
+# NEW:
 embed = discord.Embed(
-    title="Titel",
-    description="Beschreibung",
+    title="Title",
+    description="Description",
     color=discord.Color.blue()
 )
 ```
 
 ### Buttons
+
 ```python
-# ALT:
+# OLD:
 container.add_item(ActionRow(button))
 
-# NEU:
-self.add_item(button)  # oder als @discord.ui.button Decorator
+# NEW:
+self.add_item(button)  # or via @discord.ui.button decorator
 ```
 
 ## 🐛 Troubleshooting
 
-### Fehler: "py-cord not found"
+### Error: "py-cord not found"
+
 ```powershell
 python -m pip install py-cord
 ```
 
-### Fehler: "DesignerView not found"
-➡️ Gut! Das bedeutet die Konvertierung war erfolgreich. Entferne alle `DesignerView` Imports.
+### Error: "DesignerView not found"
 
-### Fehler: "Container not found"
-➡️ Konvertiere alle `Container()` Verwendungen zu `discord.Embed`. Siehe `CONVERSION_GUIDE.md`.
+➡️ Good! That means the conversion was successful. Remove all `DesignerView` imports.
 
-### Fehler: "Components displayable text size exceeds maximum size of 4000"
-➡️ Dein Text ist zu lang. Teile Informationen auf mehrere Embed-Fields auf oder verwende mehrere Nachrichten.
+### Error: "Container not found"
 
-## 🔗 Nützliche Links
+➡️ Convert all `Container()` usages to `discord.Embed`. See `CONVERSION_GUIDE.md`.
 
-- [py-cord Dokumentation](https://docs.pycord.dev/)
-- [Discord Embed Dokumentation](https://docs.pycord.dev/en/stable/api/models.html#discord.Embed)
-- [UI Components Guide](https://docs.pycord.dev/en/stable/api/ui_kit.html)
-- [Migration Guide](https://docs.pycord.dev/en/stable/migrating.html)
+### Error: "Components displayable text size exceeds maximum size of 4000"
+
+➡️ Your text is too long. Split the information into multiple embed fields or use multiple messages.
+
+## 🔗 Useful Links
+
+* [py-cord Documentation](https://docs.pycord.dev/)
+* [Discord Embed Documentation](https://docs.pycord.dev/en/stable/api/models.html#discord.Embed)
+* [UI Components Guide](https://docs.pycord.dev/en/stable/api/ui_kit.html)
+* [Migration Guide](https://docs.pycord.dev/en/stable/migrating.html)
 
 ## ⚡ Quick Reference
 
-| v1 (Veraltet) | v2 (Aktuell) |
-|---------------|--------------|
-| `DesignerView` | `discord.ui.View` |
-| `Container()` | `discord.Embed()` |
-| `TextDisplay()` | `embed.add_field()` |
+| v1 (Deprecated)     | v2 (Current)            |
+| ------------------- | ----------------------- |
+| `DesignerView`      | `discord.ui.View`       |
+| `Container()`       | `discord.Embed()`       |
+| `TextDisplay()`     | `embed.add_field()`     |
 | `ActionRow(button)` | `self.add_item(button)` |
-| `ButtonStyle.gray` | `ButtonStyle.grey` |
+| `ButtonStyle.gray`  | `ButtonStyle.grey`      |
 
 ## 🤝 Support
 
-Bei Fragen oder Problemen:
-1. Überprüfe [CONVERSION_GUIDE.md](https://github.com/larroxtv/pycord-components-v2-converter/blob/main/CONVERSION_GUIDE.md) für detaillierte Beispiele
-2. Suche in der [py-cord Dokumentation](https://docs.pycord.dev/)
-3. Stelle sicher, dass py-cord 2.7.0 installiert ist
+If you have questions or issues:
 
-## 📝 Lizenz
+1. Check [CONVERSION_GUIDE.md](https://github.com/larroxtv/pycord-components-v2-converter/blob/main/CONVERSION_GUIDE.md) for detailed examples
+2. Search the [py-cord documentation](https://docs.pycord.dev/)
+3. Make sure py-cord 2.7.0 is installed
 
-Dieses Tool ist Lizensiert unter der [MIT License](https://github.com/larroxtv/pycord-components-v2-converter/blob/main/LICENSE).
+## 📝 License
+
+This tool is licensed under the [MIT License](https://github.com/larroxtv/pycord-components-v2-converter/blob/main/LICENSE).
