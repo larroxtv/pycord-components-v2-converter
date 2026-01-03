@@ -1,20 +1,22 @@
 # Py-Cord Components v2 Converter
 
-A PowerShell tool for automatically converting py-cord bot code from Components v1 to v2.
+A PowerShell tool for automatically converting py-cord bot code from standard Discord Components to the new Components v2 API.
 
 ## 🎯 What does this tool do?
 
-This tool helps you migrate your Discord bot from the deprecated DesignerView API to the new standard Discord Components.
+This tool helps you migrate your Discord bot from the standard `discord.Embed` API to the new **Components v2** system with `Container` and `TextDisplay`.
 
 ### ✅ Automatic conversions:
 - ✅ Installs/updates **py-cord to version 2.7.0**
-- ✅ Converts `DesignerView` → `discord.ui.View`
-- ✅ Removes deprecated imports (`Container`, `TextDisplay`, `ActionRow`)
-- ✅ Fixes `ButtonStyle.gray` → `ButtonStyle.grey`
+- ✅ Converts `discord.ui.View` → `DesignerView`
+- ✅ Adds required imports (`Container`, `TextDisplay`, `ActionRow`)
+- ✅ Converts `discord.Embed` → `Container(TextDisplay(...))`
+- ✅ Fixes `ButtonStyle.grey` → `ButtonStyle.gray`
 - ✅ Creates **automatic backups** (`.backup` files)
 
 ### ⚠️ Manual work required:
-- `Container()` and `TextDisplay()` must be converted to `discord.Embed`
+- Complex embed structures may need manual adjustment
+- Multiple embeds in one message require review
 - See `CONVERSION_GUIDE.md` for detailed examples
 
 ## 🚀 Quick Start
@@ -22,7 +24,7 @@ This tool helps you migrate your Discord bot from the deprecated DesignerView AP
 ### 1. Copy the script into your project
 ```powershell
 # Copy convert_components_v2.ps1 and CONVERSION_GUIDE.md into your project directory
-````
+```
 
 ### 2. Open PowerShell and navigate to your project
 
@@ -62,7 +64,7 @@ cd C:\MyBot
 # 3. Choose option 1 to convert all files
 Your choice (1/2/3): 1
 
-# 4. Review the logs and convert Containers manually
+# 4. Review the converted code and test
 # 5. Test your bot
 python main.py
 
@@ -86,43 +88,49 @@ Get-ChildItem -Filter "*.backup" -Recurse | ForEach-Object {
 
 ## 📖 Important Code Changes
 
-### DesignerView → discord.ui.View
+### discord.ui.View → DesignerView
 
 ```python
 # OLD:
-class MyView(DesignerView):
+class MyView(discord.ui.View):
     pass
 
 # NEW:
-class MyView(discord.ui.View):
+from discord.ui import DesignerView
+
+class MyView(DesignerView):
     pass
 ```
 
-### Container/TextDisplay → Embed
+### discord.Embed → Container/TextDisplay
 
 ```python
 # OLD:
-container = Container(
-    TextDisplay("Title"),
-    TextDisplay("Description")
-)
-
-# NEW:
 embed = discord.Embed(
     title="Title",
     description="Description",
     color=discord.Color.blue()
 )
+
+# NEW:
+from discord.ui import Container, TextDisplay
+
+container = Container(
+    TextDisplay("Title"),
+    TextDisplay("Description")
+)
 ```
 
-### Buttons
+### Buttons with ActionRow
 
 ```python
 # OLD:
-container.add_item(ActionRow(button))
+view.add_item(button)
 
 # NEW:
-self.add_item(button)  # or via @discord.ui.button decorator
+from discord.ui import ActionRow
+
+container.add_item(ActionRow(button))
 ```
 
 ## 🐛 Troubleshooting
@@ -130,37 +138,43 @@ self.add_item(button)  # or via @discord.ui.button decorator
 ### Error: "py-cord not found"
 
 ```powershell
-python -m pip install py-cord
+python -m pip install py-cord==2.7.0
 ```
 
 ### Error: "DesignerView not found"
 
-➡️ Good! That means the conversion was successful. Remove all `DesignerView` imports.
+➡️ Make sure py-cord 2.7.0 is installed:
+```powershell
+python -m pip install --upgrade py-cord==2.7.0
+```
 
 ### Error: "Container not found"
 
-➡️ Convert all `Container()` usages to `discord.Embed`. See `CONVERSION_GUIDE.md`.
+➡️ Check your imports:
+```python
+from discord.ui import Container, TextDisplay, ActionRow
+```
 
 ### Error: "Components displayable text size exceeds maximum size of 4000"
 
-➡️ Your text is too long. Split the information into multiple embed fields or use multiple messages.
+➡️ Your text is too long. Split the information into multiple TextDisplay elements or use multiple containers.
 
 ## 🔗 Useful Links
 
 * [py-cord Documentation](https://docs.pycord.dev/)
-* [Discord Embed Documentation](https://docs.pycord.dev/en/stable/api/models.html#discord.Embed)
-* [UI Components Guide](https://docs.pycord.dev/en/stable/api/ui_kit.html)
+* [Components v2 Documentation](https://docs.pycord.dev/en/stable/api/ui_kit.html)
+* [DesignerView Guide](https://docs.pycord.dev/en/stable/api/ui_kit.html#discord.ui.DesignerView)
 * [Migration Guide](https://docs.pycord.dev/en/stable/migrating.html)
 
 ## ⚡ Quick Reference
 
-| v1 (Deprecated)     | v2 (Current)            |
+| v1 (Standard)       | v2 (Components v2)      |
 | ------------------- | ----------------------- |
-| `DesignerView`      | `discord.ui.View`       |
-| `Container()`       | `discord.Embed()`       |
-| `TextDisplay()`     | `embed.add_field()`     |
-| `ActionRow(button)` | `self.add_item(button)` |
-| `ButtonStyle.gray`  | `ButtonStyle.grey`      |
+| `discord.ui.View`   | `DesignerView`          |
+| `discord.Embed()`   | `Container()`           |
+| `embed.add_field()` | `TextDisplay()`         |
+| `view.add_item()`   | `ActionRow(button)`     |
+| `ButtonStyle.grey`  | `ButtonStyle.gray`      |
 
 ## 🤝 Support
 
@@ -168,7 +182,7 @@ If you have questions or issues:
 
 1. Check [CONVERSION_GUIDE.md](https://github.com/larroxtv/pycord-components-v2-converter/blob/main/CONVERSION_GUIDE.md) for detailed examples
 2. Search the [py-cord documentation](https://docs.pycord.dev/)
-3. Make sure py-cord 2.7.0 is installed
+3. Make sure py-cord 2.7.0 or newer is installed
 
 ## 📝 License
 
