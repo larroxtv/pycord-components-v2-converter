@@ -123,7 +123,7 @@ self.add_item(button)  # oder als @discord.ui.button Decorator
 
 ### Fehler: "py-cord not found"
 ```powershell
-python -m pip install py-cord==2.7.0
+python -m pip install py-cord
 ```
 
 ### Fehler: "DesignerView not found"
