@@ -10,12 +10,12 @@ cd C:\Path\to\your\Project
 
 ## What the script does automatically:
 
-✅ Installs/updates py-cord to version 2.7.0
-✅ Converts `discord.ui.View` to `DesignerView`
-✅ Adds required imports (`Container`, `TextDisplay`, `ActionRow`)
-✅ Converts `discord.Embed` to `Container(TextDisplay())`
-✅ Fixes `ButtonStyle` usage (grey → gray)
-✅ Automatically creates backups (`.backup` files)
+- ✅ Installs/updates py-cord to version 2.7.0 or newer
+- ✅ Converts `discord.ui.View` to `DesignerView`
+- ✅ Adds required imports (`Container`, `TextDisplay`, `ActionRow`)
+- ✅ Converts `discord.Embed` to `Container(TextDisplay())`
+- ✅ Fixes `ButtonStyle` usage (grey → gray)
+- ✅ Automatically creates backups (`.backup` files)
 
 ## What must be done manually:
 
