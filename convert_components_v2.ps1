@@ -1,14 +1,14 @@
-# Discord Components v1 to v2 Converter
-# This script converts Discord UI Components from v1 to v2
-# and installs/updates py-cord to the LATEST version from PyPI
+# Discord Components v2 -> v1 Converter (Embed → Container)
+# Updates py-cord to latest PyPI version
+# Auto-converts simple discord.Embed() instances into Container(TextDisplay(...))
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Discord Components v1 -> v2 Converter" -ForegroundColor Cyan
+Write-Host "Discord Components v2 -> v1 Converter" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # ------------------------------------------------------------
-# Function: Install / Update py-cord to latest PyPI version
+# Update py-cord to latest
 # ------------------------------------------------------------
 function Update-PyCord {
     Write-Host "Checking py-cord installation..." -ForegroundColor Yellow
@@ -29,7 +29,6 @@ function Update-PyCord {
         Write-Host "py-cord installed successfully!" -ForegroundColor Green
     }
 
-    # Show installed version after update
     $newVersionLine = python -m pip show py-cord 2>$null | Select-String "Version:"
     if ($newVersionLine) {
         $installedVersion = ($newVersionLine -split ": ")[1].Trim()
@@ -40,7 +39,7 @@ function Update-PyCord {
 }
 
 # ------------------------------------------------------------
-# Function: Convert a single Python file
+# Convert a single Python file
 # ------------------------------------------------------------
 function Convert-ComponentsFile {
     param (
@@ -49,57 +48,45 @@ function Convert-ComponentsFile {
 
     Write-Host "Converting: $FilePath" -ForegroundColor Cyan
 
-    # Create backup
+    # Backup
     $backupPath = "$FilePath.backup"
     Copy-Item $FilePath $backupPath -Force
     Write-Host "  Backup created: $backupPath" -ForegroundColor Gray
 
-    # Read file content
     $content = Get-Content $FilePath -Raw -Encoding UTF8
     $originalContent = $content
     $changes = 0
 
-    # 1. Convert DesignerView -> discord.ui.View
-    if ($content -match "DesignerView") {
-        $content = $content -replace "class\s+(\w+)\(DesignerView\)", "class `$1(discord.ui.View)"
-        $content = $content -replace "from discord\.ui import.*DesignerView.*", ""
+    # --------------------------------------------------------
+    # Embed -> Container(TextDisplay(...))
+    # --------------------------------------------------------
+    $embedPattern = 'discord\.Embed\(\s*((?:.|\n)*?)\s*\)'
+    if ($content -match $embedPattern) {
+        $content = [regex]::Replace($content, $embedPattern, {
+            param($match)
+
+            $inner = $match.Groups[1].Value
+
+            # Extract title and description
+            $titleMatch = [regex]::Match($inner, 'title\s*=\s*["\']([^"\']*)["\']')
+            $descMatch  = [regex]::Match($inner, 'description\s*=\s*["\']([^"\']*)["\']')
+
+            $title = if ($titleMatch.Success) { $titleMatch.Groups[1].Value } else { "" }
+            $desc  = if ($descMatch.Success)  { $descMatch.Groups[1].Value } else { "" }
+
+            $textDisplays = @()
+            if ($title -ne "") { $textDisplays += "TextDisplay(`"$title`")" }
+            if ($desc -ne "")  { $textDisplays += "TextDisplay(`"$desc`")" }
+
+            $containerString = "Container(" + ($textDisplays -join ", ") + ")"
+            return $containerString
+        })
+
+        Write-Host "  ✓ discord.Embed auto-converted to Container(TextDisplay(...))" -ForegroundColor Green
         $changes++
-        Write-Host "  ✓ DesignerView -> discord.ui.View" -ForegroundColor Green
     }
 
-    # 2. Remove deprecated imports
-    if ($content -match "Container|TextDisplay|ActionRow") {
-        $content = $content -replace ",\s*Container\s*,\s*TextDisplay\s*,\s*ActionRow", ""
-        $content = $content -replace "from discord\.ui import\s*$", ""
-        $changes++
-        Write-Host "  ✓ Removed Container, TextDisplay, ActionRow imports" -ForegroundColor Green
-    }
-
-    # 3. Warn about Container usage
-    if ($content -match "Container\(") {
-        Write-Host "  ⚠ WARNING: Container() usage detected!" -ForegroundColor Yellow
-        Write-Host "    These must be manually converted to discord.Embed." -ForegroundColor Yellow
-        Write-Host "    See CONVERSION_GUIDE.md for examples." -ForegroundColor Yellow
-    }
-
-    # 4. Fix ButtonStyle usage
-    if ($content -match "ButtonStyle\.") {
-        $content = $content -replace "discord\.ButtonStyle\.primary", "discord.ButtonStyle.primary"
-        $content = $content -replace "discord\.ButtonStyle\.secondary", "discord.ButtonStyle.secondary"
-        $content = $content -replace "discord\.ButtonStyle\.success", "discord.ButtonStyle.success"
-        $content = $content -replace "discord\.ButtonStyle\.danger", "discord.ButtonStyle.danger"
-        $content = $content -replace "discord\.ButtonStyle\.gray", "discord.ButtonStyle.grey"
-        Write-Host "  ✓ ButtonStyle updated" -ForegroundColor Green
-    }
-
-    # 5. Add missing discord import
-    if ($content -notmatch "import discord" -and $content -match "discord\.") {
-        $content = "import discord`n" + $content
-        $changes++
-        Write-Host "  ✓ Added 'import discord'" -ForegroundColor Green
-    }
-
-    # Save file only if changes were made
+    # Save only if changed
     if ($content -ne $originalContent) {
         Set-Content $FilePath -Value $content -Encoding UTF8
         Write-Host "  ✓ File updated! ($changes change(s))" -ForegroundColor Green
@@ -112,7 +99,7 @@ function Convert-ComponentsFile {
 }
 
 # ------------------------------------------------------------
-# Function: Convert all Python files in a directory
+# Convert all Python files recursively
 # ------------------------------------------------------------
 function Convert-AllPythonFiles {
     param (
@@ -133,9 +120,7 @@ function Convert-AllPythonFiles {
     Write-Host ""
 
     foreach ($file in $pythonFiles) {
-        if ($file.FullName -match "__pycache__") {
-            continue
-        }
+        if ($file.FullName -match "__pycache__") { continue }
         Convert-ComponentsFile -FilePath $file.FullName
     }
 }
@@ -146,10 +131,8 @@ function Convert-AllPythonFiles {
 Write-Host "Starting conversion..." -ForegroundColor Cyan
 Write-Host ""
 
-# Update py-cord first
 Update-PyCord
 
-# Get current directory
 $currentDir = Get-Location
 
 Write-Host "Would you like to:" -ForegroundColor Cyan
@@ -189,8 +172,9 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "IMPORTANT NOTES:" -ForegroundColor Yellow
 Write-Host "1. Backup files were created with the .backup extension" -ForegroundColor White
-Write-Host "2. Container/TextDisplay must be manually converted to Embeds" -ForegroundColor White
-Write-Host "3. Test your bot before deleting backups!" -ForegroundColor White
-Write-Host "4. Restore backups with:" -ForegroundColor White
+Write-Host "2. Only simple discord.Embed instances were auto-converted" -ForegroundColor White
+Write-Host "3. Complex embeds with fields, authors, footers, or images must be converted manually" -ForegroundColor White
+Write-Host "4. Test your bot before deleting backups!" -ForegroundColor White
+Write-Host "5. Restore backups with:" -ForegroundColor White
 Write-Host "   Get-ChildItem -Filter '*.backup' -Recurse | ForEach-Object { Move-Item `$_.FullName (`$_.FullName -replace '\.backup$','') -Force }" -ForegroundColor Gray
 Write-Host ""
