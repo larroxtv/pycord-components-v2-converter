@@ -1,6 +1,6 @@
 # Py-Cord Components v2 Converter
 
-A PowerShell tool for automatically converting Discord.py / py-cord bot code from Components v1 to v2.
+A PowerShell tool for automatically converting py-cord bot code from Components v1 to v2.
 
 ## 🎯 What does this tool do?
 
